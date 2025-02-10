@@ -5,10 +5,11 @@ A command-line tool to check websites for Post-Quantum Cryptography (PQC) implem
 ## Features
 
 - Check single or multiple URLs for PQC implementation
-- Detailed TLS/security configuration analysis
+- Detailed TLS/security configuration analysis including server identification
 - Support for both direct URL input and file-based URL lists
 - Automatic logging of results
 - QUIC protocol detection
+- Server header detection and reporting
 
 ## Prerequisites
 
@@ -79,6 +80,7 @@ Example output:
 🔍 Checking: https://example.com
 ----------------------------------------
 🔒 Security State: SECURE
+🖥️ Server: cloudflare
 🌐 Transport Protocol: TLS 1.3
 🔑 Key Exchange: ECDHE
 🔄 Key Exchange Group: X25519

@@ -97,6 +97,7 @@ const checkTLS = async (url, logStream) => {
             // Format the results
             result += `----------------------------------------\n`;
             result += `🔒 Security State: ${securityState.securityState.toUpperCase()}\n`;
+            result += `🖥️ Server: ${serverHeader}\n`;
             result += `🌐 Transport Protocol: ${isQUIC ? "QUIC (Uses TLS 1.3 Encryption)" : tlsVersion}\n`;
             result += `🔑 Key Exchange: ${keyExchange}\n`;
             result += `🔄 Key Exchange Group: ${keyExchangeGroup}\n`;
@@ -115,7 +116,16 @@ const checkTLS = async (url, logStream) => {
             logStream.write(result + "\n");
         });
 
-        // Navigate to the URL and wait for content to load
+        // Navigate to the URL and capture response headers
+        let serverHeader = 'N/A';
+        page.on('response', response => {
+            const headers = response.headers();
+            // Capture server header from any response, prioritizing the last one
+            if (headers['server']) {
+                serverHeader = headers['server'];
+            }
+        });
+
         // Navigate with additional options for better error handling
         await page.goto(url, {
             waitUntil: 'networkidle0',
