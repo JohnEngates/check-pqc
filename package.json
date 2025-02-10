@@ -1,0 +1,24 @@
+{
+  "name": "check-pqc",
+  "version": "1.0.0",
+  "description": "Tool to check websites for Post-Quantum Cryptography implementation",
+  "main": "check-pqc.js",
+  "scripts": {
+    "start": "node check-pqc.js"
+  },
+  "keywords": [
+    "post-quantum",
+    "cryptography",
+    "security",
+    "tls",
+    "pqc"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
