@@ -41,14 +41,35 @@ const formatTimestamp = (timestamp) => {
  * @param {WriteStream} logStream - Stream to write results to log file
  */
 const checkTLS = async (url, logStream) => {
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
-    // Create CDP session for accessing security details
-    const client = await page.target().createCDPSession();
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+            '--disable-gpu',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--ignore-certificate-errors',
+            '--ignore-certificate-errors-spki-list'
+        ]
+    });
 
     let result = `\n🔍 Checking: ${url}\n`;
 
     try {
+        const page = await browser.newPage();
+        
+        // Set additional security headers
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        });
+
+        // Configure page timeouts
+        await page.setDefaultNavigationTimeout(30000);
+        await page.setDefaultTimeout(30000);
+        
+        // Create CDP session for accessing security details
+        const client = await page.target().createCDPSession();
         await client.send('Security.enable');
 
         // Listen for security state changes and collect detailed information
@@ -95,14 +116,22 @@ const checkTLS = async (url, logStream) => {
         });
 
         // Navigate to the URL and wait for content to load
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
+        // Navigate with additional options for better error handling
+        await page.goto(url, {
+            waitUntil: 'networkidle0',
+            timeout: 30000
+        });
 
         // Wait for security information to be collected
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
     } catch (error) {
-        console.error(`❌ Error checking ${url}:`, error.message);
-        logStream.write(`❌ Error checking ${url}: ${error.message}\n`);
+        let errorMessage = error.message;
+        if (error.message.includes('net::ERR_HTTP2_PROTOCOL_ERROR')) {
+            errorMessage = 'HTTP/2 protocol error - This might be due to the site\'s security policies. Try accessing the site directly in a browser first.';
+        }
+        console.error(`❌ Error checking ${url}:`, errorMessage);
+        logStream.write(`❌ Error checking ${url}: ${errorMessage}\n`);
     } finally {
         await browser.close();
     }
