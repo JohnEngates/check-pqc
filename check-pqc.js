@@ -72,8 +72,8 @@ const checkTLS = async (url, logStream) => {
         const client = await page.target().createCDPSession();
         await client.send('Security.enable');
 
-        // Listen for security state changes and collect detailed information
-        client.on('Security.visibleSecurityStateChanged', (event) => {
+        // Listen for security state changes once to avoid duplicate logs
+        client.once('Security.visibleSecurityStateChanged', (event) => {
             const securityState = event.visibleSecurityState;
             const certState = securityState.certificateSecurityState || {};
 
