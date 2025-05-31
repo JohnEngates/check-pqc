@@ -72,6 +72,9 @@ const checkTLS = async (url, logStream) => {
         const client = await page.target().createCDPSession();
         await client.send('Security.enable');
 
+        // Capture the server header for later reporting
+        let serverHeader = 'N/A';
+
         // Listen for security state changes and collect detailed information
         client.on('Security.visibleSecurityStateChanged', (event) => {
             const securityState = event.visibleSecurityState;
@@ -117,7 +120,6 @@ const checkTLS = async (url, logStream) => {
         });
 
         // Navigate to the URL and capture response headers
-        let serverHeader = 'N/A';
         page.on('response', response => {
             const headers = response.headers();
             // Capture server header from any response, prioritizing the last one
